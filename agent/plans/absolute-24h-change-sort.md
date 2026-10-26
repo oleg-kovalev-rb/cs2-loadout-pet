@@ -431,6 +431,8 @@ Commands actually executed:
   **579 examples, 0 failures**.
 - `docker compose ... run --rm --no-deps app_fetcher bash -c "bin/rubocop -f simple && bundle exec srb tc"` —
   **198 files inspected, no offenses**; **No errors**.
+- `docker compose ... run --rm --no-deps app_fetcher bin/brakeman --no-pager` —
+  **Security Warnings: 0**.
 - `docker compose ... run --rm --no-deps app_core npm test` —
   **56 files, 345 tests passed**.
 - `docker compose ... run --rm --no-deps app_core bash -c "npm run lint && npm run format:check"` —
@@ -454,6 +456,11 @@ Commands actually executed:
   expression in `COALESCE(..., 0)` and added a regression example.
 - Dropped the literal `Sort: ` prefix in the Items and inventory-detail
   triggers (planned) because the new label already contains a colon.
+- Brakeman flagged the first ordering helper's
+  `Arel.sql("#{expression} #{direction}")` as a possible SQL injection
+  (false positive — both parts are internal). Replaced the interpolation
+  with literal `Arel.sql(...)` expressions plus `.desc`/`.asc` nodes, so
+  the report is clean without an ignore file.
 
 ## Remaining Issues
 
