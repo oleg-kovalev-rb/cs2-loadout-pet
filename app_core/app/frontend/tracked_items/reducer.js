@@ -5,7 +5,7 @@ export const initialState = {
   categories: new Set(),
   rarities: new Set(),
   stattrakOnly: false,
-  sort: 'change_24h_desc',
+  sort: 'change_24h_percent_desc',
   view: 'ticker', // 'ticker' | 'grid'
   page: 1,
   perPage: 20,

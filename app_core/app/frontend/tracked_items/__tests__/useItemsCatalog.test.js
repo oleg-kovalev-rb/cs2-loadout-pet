@@ -42,7 +42,7 @@ function baseParams(overrides = {}) {
     categories: new Set(),
     rarities: new Set(),
     stattrakOnly: false,
-    sort: 'change_24h_desc',
+    sort: 'change_24h_percent_desc',
     page: 1,
     perPage: 25,
     ...overrides,
@@ -181,7 +181,7 @@ describe('useItemsCatalog', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const { rerender } = renderHook((props) => useItemsCatalog('http://fetcher.test', props), {
-      initialProps: baseParams({ sort: 'change_24h_desc' }),
+      initialProps: baseParams({ sort: 'change_24h_percent_desc' }),
     })
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))

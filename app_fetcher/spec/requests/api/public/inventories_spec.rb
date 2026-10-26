@@ -333,8 +333,8 @@ RSpec.describe "Api::Public::Inventories", type: :request do
 
     context "sort" do
       let!(:inventory) { create(:user_inventory) }
-      let!(:cheap) { create(:item, current_price_cents: 100, metadata: { item_name: "Bravo" }) }
-      let!(:expensive) { create(:item, current_price_cents: 900, metadata: { item_name: "Alpha" }) }
+      let!(:cheap) { create(:item, current_price_cents: 100, change_24h_cents: -50, metadata: { item_name: "Bravo" }) }
+      let!(:expensive) { create(:item, current_price_cents: 900, change_24h_cents: 200, metadata: { item_name: "Alpha" }) }
 
       before do
         create(:user_inventory_item, user_inventory: inventory, item: cheap)
@@ -353,6 +353,19 @@ RSpec.describe "Api::Public::Inventories", type: :request do
 
         names = JSON.parse(response.body)["top_items"]["entries"].map { |e| e["market_hash_name"] }
         expect(names.index(expensive.market_hash_name)).to be < names.index(cheap.market_hash_name)
+      end
+
+      it "applies sign-agnostic change sorts" do
+        get "/api/public/inventories/#{inventory.steam_id}", params: { sort: "change_24h_amount_desc" }
+        amount_names = JSON.parse(response.body)["top_items"]["entries"].map { |e| e["market_hash_name"] }
+
+        get "/api/public/inventories/#{inventory.steam_id}", params: { sort: "change_24h_percent_desc" }
+        percent_names = JSON.parse(response.body)["top_items"]["entries"].map { |e| e["market_hash_name"] }
+
+        aggregate_failures do
+          expect(amount_names.index(expensive.market_hash_name)).to be < amount_names.index(cheap.market_hash_name)
+          expect(percent_names.index(cheap.market_hash_name)).to be < percent_names.index(expensive.market_hash_name)
+        end
       end
 
       it "rejects an unrecognized sort value with :bad_request" do

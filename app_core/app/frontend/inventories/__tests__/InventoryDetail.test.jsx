@@ -97,6 +97,7 @@ describe('InventoryDetail', () => {
     expect(screen.getByText('$5,000.00')).toBeInTheDocument() // total_value_cents
     expect(screen.getByText('127')).toBeInTheDocument() // items_count
     expect(screen.getByText(/Crimson Web/)).toBeInTheDocument() // priciest item note
+    expect(screen.getByText('+$1.30')).toBeInTheDocument() // item money delta
     expect(container.querySelector('.hero-delta')).toHaveClass('is-up')
   })
 
@@ -233,7 +234,7 @@ describe('InventoryDetail', () => {
     render(<InventoryDetail fetcherUrl="http://fetcher.test" steamId="76561198000000001" />)
     await waitFor(() => expect(screen.getByText('AK-47 | Redline')).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: /sort:/i }))
+    await user.click(screen.getByRole('button', { name: 'Price, high to low' }))
     await user.click(screen.getByRole('button', { name: 'Name' }))
 
     await waitFor(() =>

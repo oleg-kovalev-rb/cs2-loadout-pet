@@ -123,6 +123,26 @@ describe('ItemsTile (filter -> sort -> paginate integration)', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(5)
   })
 
+  test('sorts by absolute change magnitude and renders the money delta', async () => {
+    const user = userEvent.setup()
+    render(<Harness />)
+
+    await user.click(screen.getByRole('button', { name: /price ↓/i }))
+
+    await user.click(screen.getByRole('button', { name: '24h change: max amount' }))
+    let rows = screen.getAllByRole('listitem')
+    expect(within(rows[0]).getByText(/Howl/)).toBeInTheDocument()
+    expect(within(rows[1]).getByText(/Redline/)).toBeInTheDocument()
+    expect(within(rows[0]).getByText('-$10.00')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '24h change: max amount' }))
+    await user.click(screen.getByRole('button', { name: '24h change: max percent' }))
+    rows = screen.getAllByRole('listitem')
+    expect(within(rows[0]).getByText(/Redline/)).toBeInTheDocument()
+    expect(within(rows[1]).getByText(/Asiimov/)).toBeInTheDocument()
+    expect(within(rows[2]).getByText(/Vulcan/)).toBeInTheDocument()
+  })
+
   test('pagination reflects the current filtered set, not the full list', async () => {
     const user = userEvent.setup()
     render(<Harness />)
