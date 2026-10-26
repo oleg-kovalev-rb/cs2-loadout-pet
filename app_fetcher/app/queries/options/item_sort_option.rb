@@ -5,6 +5,10 @@ module Options
     extend T::Sig
 
     enums do
+      ChangeAmountDesc = new("change_24h_amount_desc")
+      ChangeAmountAsc = new("change_24h_amount_asc")
+      ChangePercentDesc = new("change_24h_percent_desc")
+      ChangePercentAsc = new("change_24h_percent_asc")
       ChangeDesc = new("change_24h_desc")
       PriceDesc = new("price_desc")
       PriceAsc = new("price_asc")
@@ -14,12 +18,40 @@ module Options
     sig { params(scope: ActiveRecord::Relation).returns(ActiveRecord::Relation) }
     def apply(scope)
       case self
-      when ChangeDesc then scope.order(change_24h_cents: :desc)
+      when ChangeAmountDesc then magnitude_order(scope, amount_magnitude_sql, "DESC")
+      when ChangeAmountAsc then magnitude_order(scope, amount_magnitude_sql, "ASC")
+      when ChangePercentDesc, ChangeDesc then magnitude_order(scope, percent_magnitude_sql, "DESC")
+      when ChangePercentAsc then magnitude_order(scope, percent_magnitude_sql, "ASC")
       when PriceDesc then scope.order(current_price_cents: :desc)
       when PriceAsc then scope.order(current_price_cents: :asc)
       when NameAsc then scope.order(Arel.sql("metadata->>'item_name' ASC"))
       else T.absurd(self)
       end
+    end
+
+    private
+
+    sig do
+      params(scope: ActiveRecord::Relation, expression: String, direction: String)
+        .returns(ActiveRecord::Relation)
+    end
+    def magnitude_order(scope, expression, direction)
+      scope.order(Arel.sql("#{expression} #{direction}"), :market_hash_name)
+    end
+
+    sig { returns(String) }
+    def amount_magnitude_sql
+      "ABS(COALESCE(change_24h_cents, 0))"
+    end
+
+    # Mirrors PriceChangePercent's `change / (current - change) * 100`
+    # calculation so the ordering matches the percentage the serializer
+    # renders. Missing values fall back to zero, the same way the serializers
+    # render a nil change.
+    sig { returns(String) }
+    def percent_magnitude_sql
+      "COALESCE(ABS(ROUND((COALESCE(change_24h_cents, 0)::numeric / " \
+        "NULLIF(current_price_cents - COALESCE(change_24h_cents, 0), 0)) * 100, 2)), 0)"
     end
   end
 end

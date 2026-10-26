@@ -1,6 +1,6 @@
 import { Sparkline } from '../../shared/components/Sparkline'
 import { trendDirection } from '../../shared/utils/trend'
-import { fmtPrice, conditionAbbr } from '../../shared/utils/format'
+import { fmtPrice, fmtSignedUSD, conditionAbbr } from '../../shared/utils/format'
 import { isPriceStale, priceAgeLabel } from '../../shared/utils/priceFreshness'
 
 // Read-only — unlike dashboard's ItemRow, there's no selection/drill-down
@@ -43,6 +43,9 @@ export function InventoryItemRow({ item }) {
           {showDelta && (
             <span className={`mover-delta tabular ${direction}`}>
               {arrow} {Math.abs(pct).toFixed(1)}%
+              {item.change24hCents != null && item.change24hCents !== 0 && (
+                <span className="delta-amount"> {fmtSignedUSD(item.change24hCents)}</span>
+              )}
             </span>
           )}
         </span>

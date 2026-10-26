@@ -69,8 +69,26 @@ describe('applyFilters', () => {
 })
 
 describe('applySort', () => {
-  test('change_24h_desc orders biggest gainers first', () => {
-    const result = applySort(items, 'change_24h_desc')
+  test('change_24h_amount_desc orders by absolute cents, biggest first, ignoring sign', () => {
+    const result = applySort(items, 'change_24h_amount_desc')
+    expect(result.map((i) => i.marketHashName)).toEqual([
+      'AK-47 | Redline (FT)',
+      'AK-47 | Vulcan (MW) ST',
+      'AWP | Asiimov (BS)',
+    ])
+  })
+
+  test('change_24h_amount_asc orders by absolute cents, smallest first', () => {
+    const result = applySort(items, 'change_24h_amount_asc')
+    expect(result.map((i) => i.marketHashName)).toEqual([
+      'AWP | Asiimov (BS)',
+      'AK-47 | Vulcan (MW) ST',
+      'AK-47 | Redline (FT)',
+    ])
+  })
+
+  test('change_24h_percent_desc orders by absolute percent, biggest first, ignoring sign', () => {
+    const result = applySort(items, 'change_24h_percent_desc')
     expect(result.map((i) => i.marketHashName)).toEqual([
       'AK-47 | Redline (FT)',
       'AWP | Asiimov (BS)',
@@ -78,12 +96,28 @@ describe('applySort', () => {
     ])
   })
 
-  test('change_24h_asc orders biggest losers first', () => {
-    const result = applySort(items, 'change_24h_asc')
+  test('change_24h_percent_asc orders by absolute percent, smallest first', () => {
+    const result = applySort(items, 'change_24h_percent_asc')
     expect(result.map((i) => i.marketHashName)).toEqual([
       'AK-47 | Vulcan (MW) ST',
       'AWP | Asiimov (BS)',
       'AK-47 | Redline (FT)',
+    ])
+  })
+
+  test('change sorts break equal magnitudes by market hash name', () => {
+    const tied = [
+      { marketHashName: 'Zeta', currentPriceCents: 100, change24hCents: 50, change24hPercent: 50 },
+      {
+        marketHashName: 'Alpha',
+        currentPriceCents: 100,
+        change24hCents: -50,
+        change24hPercent: -50,
+      },
+    ]
+    expect(applySort(tied, 'change_24h_amount_desc').map((i) => i.marketHashName)).toEqual([
+      'Alpha',
+      'Zeta',
     ])
   })
 

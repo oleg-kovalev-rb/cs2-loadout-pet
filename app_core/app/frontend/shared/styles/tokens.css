@@ -792,6 +792,10 @@ html {
 .dash-root .mover-delta.down {
   color: var(--down);
 }
+.dash-root .delta-amount {
+  color: var(--text-muted);
+  font-weight: 400;
+}
 
 /* ---------- pager (Pagination) ---------- */
 .dash-root .list-pager {

@@ -290,8 +290,14 @@ module Demo
       raise Api::Demo::UnsupportedParamError, "Unsupported sort: #{raw}" unless option
 
       case option
-      when Options::ItemSortOption::ChangeDesc
-        items.sort_by { |item| [ -(item.change_24h_cents || 0), item.market_hash_name ] }
+      when Options::ItemSortOption::ChangeAmountDesc
+        items.sort_by { |item| [ -amount_magnitude(item), item.market_hash_name ] }
+      when Options::ItemSortOption::ChangeAmountAsc
+        items.sort_by { |item| [ amount_magnitude(item), item.market_hash_name ] }
+      when Options::ItemSortOption::ChangePercentDesc, Options::ItemSortOption::ChangeDesc
+        items.sort_by { |item| [ -percent_magnitude(item), item.market_hash_name ] }
+      when Options::ItemSortOption::ChangePercentAsc
+        items.sort_by { |item| [ percent_magnitude(item), item.market_hash_name ] }
       when Options::ItemSortOption::PriceDesc
         items.sort_by { |item| [ -(item.current_price_cents || 0), item.market_hash_name ] }
       when Options::ItemSortOption::PriceAsc
@@ -300,6 +306,19 @@ module Demo
         items.sort_by { |item| [ item.metadata["item_name"].to_s.downcase, item.market_hash_name ] }
       else T.absurd(option)
       end
+    end
+
+    sig { params(item: Item).returns(Integer) }
+    def amount_magnitude(item)
+      (item.change_24h_cents || 0).abs
+    end
+
+    sig { params(item: Item).returns(Float) }
+    def percent_magnitude(item)
+      PriceChangePercent.call(
+        current_cents: item.current_price_cents,
+        change_cents: item.change_24h_cents || 0
+      ).abs
     end
 
     sig { params(items: T::Array[Item]).returns(T::Hash[String, T::Array[ItemTrendCache::TrendPoint]]) }

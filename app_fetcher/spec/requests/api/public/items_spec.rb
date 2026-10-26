@@ -204,6 +204,39 @@ RSpec.describe "GET /api/public/items", type: :request do
       expect(names.index(expensive.market_hash_name)).to be < names.index(cheap.market_hash_name)
     end
 
+    it "sorts by change_24h_amount_desc and change_24h_amount_asc ignoring sign" do
+      get "/api/public/items", params: { sort: "change_24h_amount_desc" }
+      desc_names = JSON.parse(response.body)["items"].map { |i| i["market_hash_name"] }
+
+      get "/api/public/items", params: { sort: "change_24h_amount_asc" }
+      asc_names = JSON.parse(response.body)["items"].map { |i| i["market_hash_name"] }
+
+      aggregate_failures do
+        expect(desc_names.index(expensive.market_hash_name)).to be < desc_names.index(cheap.market_hash_name)
+        expect(asc_names.index(cheap.market_hash_name)).to be < asc_names.index(expensive.market_hash_name)
+      end
+    end
+
+    it "sorts by change_24h_percent_desc and change_24h_percent_asc" do
+      get "/api/public/items", params: { sort: "change_24h_percent_desc" }
+      desc_names = JSON.parse(response.body)["items"].map { |i| i["market_hash_name"] }
+
+      get "/api/public/items", params: { sort: "change_24h_percent_asc" }
+      asc_names = JSON.parse(response.body)["items"].map { |i| i["market_hash_name"] }
+
+      aggregate_failures do
+        expect(desc_names.index(cheap.market_hash_name)).to be < desc_names.index(expensive.market_hash_name)
+        expect(asc_names.index(expensive.market_hash_name)).to be < asc_names.index(cheap.market_hash_name)
+      end
+    end
+
+    it "treats the legacy change_24h_desc as the absolute-percent default" do
+      get "/api/public/items", params: { sort: "change_24h_desc" }
+      names = JSON.parse(response.body)["items"].map { |i| i["market_hash_name"] }
+
+      expect(names.index(cheap.market_hash_name)).to be < names.index(expensive.market_hash_name)
+    end
+
     it "rejects an unrecognized sort value with :bad_request" do
       get "/api/public/items", params: { sort: "bogus" }
 

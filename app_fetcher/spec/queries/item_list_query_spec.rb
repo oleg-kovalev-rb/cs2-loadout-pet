@@ -2,17 +2,19 @@ require "rails_helper"
 
 RSpec.describe ItemListQuery do
   describe ".call" do
-    it "returns only marketable items, defaulted sort" do
-      gaining = create(:item, current_price_cents: 1000, change_24h_cents: 100)
-      losing = create(:item, current_price_cents: 900, change_24h_cents: -50)
+    it "returns only marketable items, defaulted to the absolute-percent ordering" do
+      loser = create(:item, current_price_cents: 1000, change_24h_cents: -300)
+      gainer = create(:item, current_price_cents: 1000, change_24h_cents: 100)
       non_marketable = create(:item, metadata: { marketable: false })
 
       page = described_class.call(ActionController::Parameters.new)
 
       names = page.items.map(&:market_hash_name)
-      expect(names).to include(gaining.market_hash_name, losing.market_hash_name)
-      expect(names).not_to include(non_marketable.market_hash_name)
-      expect(names.index(gaining.market_hash_name)).to be < names.index(losing.market_hash_name)
+      aggregate_failures do
+        expect(names).to include(loser.market_hash_name, gainer.market_hash_name)
+        expect(names).not_to include(non_marketable.market_hash_name)
+        expect(names.index(loser.market_hash_name)).to be < names.index(gainer.market_hash_name)
+      end
     end
 
     it "applies filters" do

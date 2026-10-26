@@ -151,18 +151,32 @@ RSpec.describe Demo::Dataset do
 
   describe "#details" do
     it "supports every sort option" do
-      first_item = dataset.items.first
-      expected_changes = dataset.items.sort_by { |item| -(item.change_24h_cents || 0) }.map(&:market_hash_name)
+      items = dataset.items
+      amount = ->(item) { (item.change_24h_cents || 0).abs }
+      percent = lambda do |item|
+        PriceChangePercent.call(
+          current_cents: item.current_price_cents,
+          change_cents: item.change_24h_cents || 0
+        ).abs
+      end
 
-      { "price_desc" => [ second_name, first_name ],
+      expected_by_sort = {
+        "price_desc" => [ second_name, first_name ],
         "price_asc" => [ first_name, second_name ],
         "name_asc" => [ first_name, second_name ],
-        "change_24h_desc" => expected_changes }.each do |sort, expected|
+        "change_24h_amount_desc" => items.sort_by { |i| [ -amount.call(i), i.market_hash_name ] }.map(&:market_hash_name),
+        "change_24h_amount_asc" => items.sort_by { |i| [ amount.call(i), i.market_hash_name ] }.map(&:market_hash_name),
+        "change_24h_percent_desc" => items.sort_by { |i| [ -percent.call(i), i.market_hash_name ] }.map(&:market_hash_name),
+        "change_24h_percent_asc" => items.sort_by { |i| [ percent.call(i), i.market_hash_name ] }.map(&:market_hash_name),
+        "change_24h_desc" => items.sort_by { |i| [ -percent.call(i), i.market_hash_name ] }.map(&:market_hash_name)
+      }
+
+      expected_by_sort.each do |sort, expected|
         details = dataset.details(
           ActionController::Parameters.new(sort: sort, per_page: 10, period: "7d")
         )
 
-        expect(details.items.entries.map(&:market_hash_name)).to eq(expected)
+        expect(details.items.entries.map(&:market_hash_name)).to eq(expected), "expected #{sort} to match"
       end
     end
 
