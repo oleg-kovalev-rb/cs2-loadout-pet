@@ -7,7 +7,7 @@ describe('trackedItemsReducer', () => {
     expect(initialState.categories.size).toBe(0)
     expect(initialState.rarities.size).toBe(0)
     expect(initialState.stattrakOnly).toBe(false)
-    expect(initialState.sort).toBe('change_24h_desc')
+    expect(initialState.sort).toBe('change_24h_percent_desc')
     expect(initialState.view).toBe('ticker')
     expect(initialState.page).toBe(1)
     expect(initialState.perPage).toBe(20)

@@ -35,7 +35,7 @@ class ItemListQuery
       ).first
 
       scope = Appliers::SortApplier.call(
-        scope, params, enum_class: Options::ItemSortOption, default: Options::ItemSortOption::ChangeDesc
+        scope, params, enum_class: Options::ItemSortOption, default: Options::ItemSortOption::ChangePercentDesc
       )
 
       page_items = pagination.apply(scope).to_a

@@ -1,7 +1,9 @@
-const SORT_OPTIONS = ['change_24h_desc', 'price_desc', 'price_asc', 'name_asc']
+import { ITEM_CHANGE_SORT_KEYS, ITEM_CHANGE_SORT_LABELS } from '../../shared/utils/itemSort'
+
+const SORT_OPTIONS = [...ITEM_CHANGE_SORT_KEYS, 'price_desc', 'price_asc', 'name_asc']
 
 const SORT_LABELS = {
-  change_24h_desc: '24h change',
+  ...ITEM_CHANGE_SORT_LABELS,
   price_desc: 'Price: high to low',
   price_asc: 'Price: low to high',
   name_asc: 'Name A–Z',
@@ -11,7 +13,7 @@ export function SortDropdown({ isOpen, onToggle, sort, onSortChange }) {
   return (
     <div className={`dropdown dropdown--end${isOpen ? ' is-open' : ''}`}>
       <button type="button" className="toolbar-btn" onClick={onToggle}>
-        <span>Sort: {SORT_LABELS[sort]}</span>
+        <span>{SORT_LABELS[sort]}</span>
         <Chevron />
       </button>
       {isOpen && (

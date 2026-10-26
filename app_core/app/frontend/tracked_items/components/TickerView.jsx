@@ -1,6 +1,6 @@
 import { Sparkline } from '../../shared/components/Sparkline'
 import { trendDirection } from '../../shared/utils/trend'
-import { fmtPrice, conditionAbbr } from '../../shared/utils/format'
+import { fmtPrice, fmtSignedUSD, conditionAbbr } from '../../shared/utils/format'
 import { rarityColor } from '../utils/rarity'
 
 function TickerRow({ item }) {
@@ -32,6 +32,9 @@ function TickerRow({ item }) {
         {showDelta && (
           <span className={`ticker-delta tabular ${direction}`}>
             {arrow} {Math.abs(pct).toFixed(1)}%
+            {item.change24hCents != null && item.change24hCents !== 0 && (
+              <span className="delta-amount"> {fmtSignedUSD(item.change24hCents)}</span>
+            )}
           </span>
         )}
       </span>

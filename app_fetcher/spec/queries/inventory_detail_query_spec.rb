@@ -272,6 +272,30 @@ RSpec.describe InventoryDetailQuery do
         expect(page.items.entries).to eq([ alpha, bravo ])
       end
 
+      it "applies every sign-agnostic change sort and the legacy alias" do
+        user_inventory = create(:user_inventory)
+        high_percent = create(:item, market_hash_name: "Sort | A", current_price_cents: 100, change_24h_cents: 50)
+        big_amount = create(:item, market_hash_name: "Sort | B", current_price_cents: 1000, change_24h_cents: 300)
+        mid_percent = create(:item, market_hash_name: "Sort | C", current_price_cents: 1000, change_24h_cents: -200)
+        low_percent = create(:item, market_hash_name: "Sort | D", current_price_cents: 100, change_24h_cents: -10)
+        [ high_percent, big_amount, mid_percent, low_percent ].each do |item|
+          create(:user_inventory_item, user_inventory: user_inventory, item: item)
+        end
+
+        expectations = {
+          "change_24h_amount_desc" => [ big_amount, mid_percent, high_percent, low_percent ],
+          "change_24h_amount_asc" => [ low_percent, high_percent, mid_percent, big_amount ],
+          "change_24h_percent_desc" => [ high_percent, big_amount, mid_percent, low_percent ],
+          "change_24h_percent_asc" => [ low_percent, mid_percent, big_amount, high_percent ],
+          "change_24h_desc" => [ high_percent, big_amount, mid_percent, low_percent ]
+        }
+
+        expectations.each do |sort, expected|
+          page = described_class.call(user_inventory.steam_id, ActionController::Parameters.new(sort: sort))
+          expect(page.items.entries).to eq(expected), "expected #{sort} to order #{expected.map(&:market_hash_name)}"
+        end
+      end
+
       it "raises Api::Public::UnsupportedParamError for an unrecognized sort value" do
         user_inventory = create(:user_inventory)
 

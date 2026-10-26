@@ -252,10 +252,18 @@ identity, or the real `ItemPriceCache`/`ItemTrendCache`/
 - Extract the reusable single-summary JSON shaping from
   `InventoryListSerializer` rather than duplicating its field list in the
   demo controller.
-- Mirror the four `Options::ItemSortOption` semantics in Ruby for the
-  in-memory `Demo::Dataset#details` list (`change_24h_desc`,
-  `price_desc`, `price_asc`, `name_asc`), because synthetic prices cannot
-  be sorted by SQL. Test all four against the same option enum.
+- Mirror **every** `Options::ItemSortOption` member in Ruby for the
+  in-memory `Demo::Dataset#details` list, because synthetic prices cannot
+  be sorted by SQL. The `case` in `Demo::Dataset#sort_items` must stay
+  exhaustive with `T.absurd(option)` and must not hard-code a subset: when
+  the enum gains a member, the Ruby mirror gains it in the same change.
+  Change sorts are sign-agnostic — `amount` is `ABS(change_24h_cents)`,
+  `percent` is the absolute `PriceChangePercent` result, and a missing
+  value counts as `0`. Equal magnitudes break by `market_hash_name` so the
+  demo ordering matches the SQL ordering, and the legacy `change_24h_desc`
+  alias resolves to the same branch as the current default
+  (`change_24h_percent_desc`). Test every enum member against the same
+  option enum.
 - Keep the showcase broad but stable: cover all eight Steam Type
   categories and a mix of inexpensive skins, mid-tier skins, knives, and
   gloves. Update the inventory contract test only when intentionally

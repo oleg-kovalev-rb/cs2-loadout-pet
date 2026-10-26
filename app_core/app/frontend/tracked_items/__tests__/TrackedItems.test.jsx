@@ -72,6 +72,8 @@ describe('TrackedItems', () => {
     expect(await screen.findByText('AK-47 | Redline', { exact: false })).toBeInTheDocument()
     expect(screen.getByText('AWP | Dragon Lore', { exact: false })).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
+    expect(screen.getByText('+$1.30')).toBeInTheDocument()
+    expect(screen.getByText('-$11.00')).toBeInTheDocument()
   })
 
   test('an item with no current price renders a placeholder and no delta badge', async () => {
@@ -133,7 +135,7 @@ describe('TrackedItems', () => {
 
     render(<TrackedItems fetcherUrl="http://fetcher.test" />)
 
-    await user.click(await screen.findByRole('button', { name: /sort:/i }))
+    await user.click(await screen.findByRole('button', { name: '24h change: max percent' }))
     await user.click(screen.getByRole('button', { name: 'Price: low to high' }))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
@@ -155,6 +157,21 @@ describe('TrackedItems', () => {
 
     expect(document.querySelector('.grid-view')).not.toBeNull()
     expect(document.querySelector('.ticker-wrap')).toBeNull()
+  })
+
+  test('selecting a sign-agnostic change sort refetches with its key', async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi.fn().mockImplementation(() => jsonResponse(catalogBody()))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<TrackedItems fetcherUrl="http://fetcher.test" />)
+
+    await user.click(await screen.findByRole('button', { name: '24h change: max percent' }))
+    await user.click(screen.getByRole('button', { name: '24h change: max amount' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    const [url] = fetchMock.mock.calls[1]
+    expect(new URL(url).searchParams.get('sort')).toBe('change_24h_amount_desc')
   })
 
   test('switching Ticker to Grid re-renders without an extra fetch', async () => {
