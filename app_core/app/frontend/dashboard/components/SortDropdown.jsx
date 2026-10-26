@@ -4,7 +4,7 @@ const SORT_OPTIONS = ['change_24h_desc', 'change_24h_asc', 'price_desc', 'price_
 
 export function SortDropdown({ isOpen, onToggle, sort, onSortChange }) {
   return (
-    <div className={`dropdown${isOpen ? ' is-open' : ''}`}>
+    <div className={`dropdown dropdown--end${isOpen ? ' is-open' : ''}`}>
       <button type="button" className="toolbar-btn" onClick={onToggle}>
         <span>{SORT_LABELS[sort]}</span>
         <Chevron />

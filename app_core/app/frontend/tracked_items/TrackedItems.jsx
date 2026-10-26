@@ -1,5 +1,5 @@
 import { useMemo, useReducer } from 'react'
-import { trackedItemsReducer, initialState } from './reducer'
+import { trackedItemsReducer, createInitialState } from './reducer'
 import { useItemsCatalog } from './hooks/useItemsCatalog'
 import { categoriesPresent, raritiesPresent } from './utils/options'
 import { stattrakPresent } from '../shared/utils/itemFilters'
@@ -11,7 +11,7 @@ import { GridView } from './components/GridView'
 import { CatalogPagination } from './components/CatalogPagination'
 
 export function TrackedItems({ fetcherUrl }) {
-  const [state, dispatch] = useReducer(trackedItemsReducer, initialState)
+  const [state, dispatch] = useReducer(trackedItemsReducer, undefined, createInitialState)
 
   const { data, status, error } = useItemsCatalog(fetcherUrl, {
     search: state.search,

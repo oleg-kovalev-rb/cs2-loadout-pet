@@ -1,5 +1,5 @@
 ---
-description: React island conventions in app_core (app/frontend/dashboard/ and any sibling island, e.g. tracked_items/, inventories/) — component structure, cross-island reuse via app/frontend/shared/, derived-data placement, state/data-loading shape (including refetch retention and full-page-state gating), item-row trend direction (up/down/flat) and hero-delta zero-hiding, fixed-height paginated lists, mutation failure handling, charting library boundaries, CSS split, Vitest/@testing-library testing conventions, and the ESLint/Prettier lint/format stack.
+description: React island conventions in app_core (app/frontend/dashboard/ and any sibling island, e.g. tracked_items/, inventories/) — component structure, cross-island reuse via app/frontend/shared/, derived-data placement, state/data-loading shape (including refetch retention, full-page-state gating, and one-time viewport-dependent initial state), item-row trend direction (up/down/flat) and hero-delta zero-hiding, fixed-height paginated lists and their phone exception, mobile hero-scroll effects, mutation failure handling, charting library boundaries, CSS split and responsive-rule ownership, Vitest/@testing-library testing conventions, and the ESLint/Prettier lint/format stack.
 ---
 
 # React Islands (`app_core/app/frontend/`)
@@ -115,6 +115,9 @@ app/frontend/shared/
     fetchJson.js            — fetch + JSON parse/HTTP-error envelope
     sets.js                 — `toggleSetMember` for reducer Set state
     itemFilters.js          — cross-island item predicates (`stattrakPresent`)
+    viewport.js             — `isMobileViewport()` / `prefersReducedMotion()`,
+                              the one JS read of the 640px and reduced-motion
+                              media queries (see `responsive-layout.md`)
   chartConfig.js            — chart-rendering constants/mechanics
                               (PERIOD_MS, tick counts, generateAxisLabels)
                               with no per-island period-set choice baked in
@@ -188,6 +191,15 @@ kebab-case name. Single-word entries (`dashboard.jsx`) are unchanged.
   local, presentation-only state (e.g. `ItemsToolbar`'s outside-click
   handling via `useRef`/`useEffect`) may use it, but shared/cross-tile
   state still lives in `reducer.js`, not component state.
+- **A viewport-dependent presentation effect may own a scroll, not page
+  state.** A component may react to a user selection by bringing its own
+  content into view (canonical: `PortfolioTile` scrolling its hero into
+  view after an item is selected on a phone). It must read the viewport
+  through `shared/utils/viewport.js`, run only for the approved viewport
+  and state transition (item selected/changed, not portfolio/deselect),
+  respect `prefers-reduced-motion`, guard `scrollIntoView` for jsdom, and
+  leave focus unchanged unless a task explicitly asks. It must not be used
+  for layout that CSS can express. See `responsive-layout.md`.
 - **Composition over configuration.** Small single-purpose components
   (`Chevron` inside `FilterDropdown.jsx`, `SortDropdown`) are nested
   directly in the file that uses them when they have no other caller,
@@ -282,6 +294,13 @@ kebab-case name. Single-word entries (`dashboard.jsx`) are unchanged.
   so it is neither focusable nor counted as a list item by role queries
   (`getAllByRole('listitem')` still returns only the real rows). Canonical:
   `dashboard/components/ItemsTile.jsx`.
+- **Phone exception to the fixed-height list.** At `≤640px` the dashboard
+  list does not keep the `PAGE_SIZE` height: hide the placeholder rows and
+  remove the list's `max-height`/inner scroll (CSS only), so touch users
+  scroll one surface — the page. Desktop and tablet keep the rule above
+  exactly as written. This is not permission to drop placeholders on larger
+  viewports or to stop paginating the list; the page still shows at most
+  `PAGE_SIZE` real rows. See `responsive-layout.md`.
 
 ## Linting & Formatting
 
@@ -441,6 +460,16 @@ page either. The root component (`AdminPanel.jsx`) owns only navigation
 state (which page is active, via `useHashRoute()`) — it is not where a
 page's table/pagination/selection state lives, even though it's the
 "root component" in the Structure sense.
+
+**A viewport-dependent initial value is evaluated once.** When the first UI
+state depends on the viewport (canonical: the items catalog opens in Grid
+on a phone, Ticker on desktop), keep the exported `initialState`
+viewport-independent and add a state factory / lazy reducer initializer
+that reads the viewport once. Do not dispatch a “set mobile view” effect
+after mount (it flashes the wrong view) and do not listen for resize to
+re-apply the default (it would overwrite the user’s explicit toggle). The
+factory takes the mobile flag as an argument in unit tests; the browser read
+is only the default. See `responsive-layout.md`.
 
 Action types are flat strings (`'PERIOD_CHANGED'`, `'ITEM_ROW_CLICKED'`,
 `'WEAPON_FILTER_TOGGLED'`, ...), each returning a full new state object
@@ -710,6 +739,13 @@ stylesheet relies on `shared/styles/tokens.css`'s custom properties
 rather than redefining them, and every island's entrypoint imports
 `shared/styles/tokens.css` before its own stylesheet.
 
+**Responsive rules follow `responsive-layout.md`.** The base declarations
+stay desktop-first; overrides go in the stylesheet that owns the selector,
+after the base rules. `tokens.css` loads before island styles, so a
+token-level media rule cannot override an equal-specificity island rule —
+put that override in the island stylesheet. The phone breakpoint is `640px`,
+mirrored by `shared/utils/viewport.js`; keep the two in sync.
+
 ## Testing
 
 Applies to any island's tests. For a multi-page island, the "all tests
@@ -744,8 +780,9 @@ globals even though they'd work.
 ### What gets a dedicated test file
 
 Not every component has one — `SortDropdown`, `ItemsToolbar`,
-`FilterDropdown`, `Pagination`, `PeriodToggle`, `Sparkline`,
-`ChartTooltip`, and `HeroChart` have none today. The dividing line
+`FilterDropdown`, `PeriodToggle`, and `Sparkline` have none today.
+`HeroChart`, `ChartTooltip`, and `Pagination` do have dedicated test files.
+The dividing line
 observed across the existing suite: a component gets its own test when
 it **composes/orchestrates other pieces** (`ItemsTile` wires the
 reducer, `filters.js`, and `Pagination` together) or **contains
@@ -769,6 +806,12 @@ layout/presentation, it doesn't need one just for existing.
   `waitFor` from `@testing-library/react`, with `vi.stubGlobal('fetch',
   vi.fn()...)` to control network responses — mock at the `fetch`
   boundary, not by stubbing the hook's own internals.
+- **Viewport behavior tests** (the dashboard hero scroll and the catalog’s
+  mobile default): stub `window.matchMedia` and
+  `Element.prototype.scrollIntoView` locally, render/drive the real
+  component, and assert the resulting behavior. Do not add a global mobile
+  stub to the shared `setup.js` — the rest of the suite assumes the desktop
+  default, and jsdom has no `matchMedia`. See `responsive-layout.md`.
 - **Component "integration-style" tests** (`ItemsTile.test.jsx`): mount a
   small harness component that owns a real
   `useReducer(dashboardReducer, initialState)` (the same reducer

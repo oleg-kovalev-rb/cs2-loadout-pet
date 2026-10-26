@@ -44,7 +44,4 @@ a change's scope just because an unrelated file is flagged here.
 
 ## `app_core`
 
-- `agent/styleguides/core/react-dashboard.md` — its "What gets a
-  dedicated test file" list still says `HeroChart`/`ChartTooltip` have
-  no test file, while `shared/__tests__/HeroChart.test.jsx` and
-  `shared/__tests__/ChartTooltip.test.jsx` exist; the list is stale.
+(none yet)

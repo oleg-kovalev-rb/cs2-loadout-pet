@@ -850,11 +850,134 @@ html {
   text-align: center;
 }
 
+/* ---------- overflow guards (shared shell) ---------- */
+.dash-root .tile-head {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.dash-root .tile-head h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.dash-root .hero-eyebrow {
+  min-width: 0;
+}
+.dash-root .hero-eyebrow h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.dash-root .dropdown-panel {
+  max-width: calc(100vw - 32px);
+}
+.dash-root .dropdown--end .dropdown-panel {
+  left: auto;
+  right: 0;
+}
+.dash-root .list-pager {
+  flex-wrap: wrap;
+}
+
 /* ---------- responsive (shared-shell rules only; per-island layout
    breakpoints live in that island's own stylesheet) ---------- */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .dash-root {
-    padding: 18px 16px 32px;
+    padding: 16px 16px calc(32px + env(safe-area-inset-bottom));
+  }
+
+  /* Topbar: brand + profile on row one, tabs on row two. */
+  .dash-root .topbar {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding-bottom: 0;
+    margin-bottom: 14px;
+    border-bottom: none;
+  }
+  .dash-root .brand {
+    order: 1;
+    min-width: 0;
+  }
+  .dash-root .brand-sub {
+    display: none;
+  }
+  .dash-root .profile-group {
+    order: 2;
+    margin-left: auto;
+    gap: 6px;
+    min-width: 0;
+  }
+  .dash-root .profile-chip {
+    min-width: 0;
+  }
+  .dash-root .profile-name {
+    max-width: 110px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dash-root .nav-tabs {
+    order: 3;
+    flex: 1 0 100%;
+    gap: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .dash-root .nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .dash-root .nav-tab {
+    padding: 11px 0 9px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .dash-root .nav-tab.is-active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  /* Touch sizing for shared controls. */
+  .dash-root .period-btn {
+    min-height: 34px;
+    padding: 7px 10px;
+  }
+  .dash-root .pager-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .dash-root .pager-btns {
+    padding: 3px;
+  }
+  .dash-root .chip {
+    min-height: 34px;
+    padding: 8px 12px;
+  }
+  .dash-root .toolbar-btn {
+    min-height: 40px;
+  }
+  .dash-root .profile-signout {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .dash-root button,
+  .dash-root a {
+    touch-action: manipulation;
+  }
+
+  /* One scroll surface: the page, not a nested list. */
+  .dash-root .items-list {
+    max-height: none;
+    overflow-y: visible;
+  }
+  .dash-root .mover-row-empty {
+    display: none;
+  }
+
+  .dash-root .chart-wrap {
+    min-height: 240px;
+  }
+  .dash-root .tile-hero {
+    scroll-margin-top: 12px;
   }
   .dash-root .hero-value {
     font-size: 2.125rem;
@@ -862,14 +985,49 @@ html {
   .dash-root .hero-value-skeleton {
     height: 2.125rem;
   }
-  .dash-root .chart-yaxis,
-  .dash-root .chart-xaxis-spacer {
-    width: 40px;
+}
+
+@media (max-width: 400px) {
+  .dash-root .brand-mark {
+    font-size: 1.375rem;
   }
-  .dash-root .chart-yaxis {
-    font-size: 0.5625rem;
+  .dash-root .profile-name {
+    display: none;
   }
-  .dash-root .topbar {
-    gap: 14px;
+  .dash-root .hero-value {
+    font-size: 1.875rem;
+  }
+  .dash-root .mover-row {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 8px 6px;
+  }
+  .dash-root .mover-icon {
+    width: 48px;
+    height: 48px;
+  }
+  .dash-root .mover-row .row-spark {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) and (min-width: 641px) {
+  .dash-root .period-btn {
+    min-height: 34px;
+  }
+  .dash-root .pager-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .dash-root .chip {
+    min-height: 34px;
+    padding: 8px 12px;
+  }
+  .dash-root .toolbar-btn {
+    min-height: 38px;
+  }
+  .dash-root .profile-signout {
+    min-width: 34px;
+    min-height: 34px;
   }
 }

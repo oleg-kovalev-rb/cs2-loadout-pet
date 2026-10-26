@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { trackedItemsReducer, initialState } from '../reducer'
+import { trackedItemsReducer, initialState, createInitialState } from '../reducer'
 
 describe('trackedItemsReducer', () => {
   test('initial state', () => {
@@ -12,6 +12,17 @@ describe('trackedItemsReducer', () => {
     expect(initialState.page).toBe(1)
     expect(initialState.perPage).toBe(20)
     expect(initialState.openDropdown).toBeNull()
+  })
+
+  test('createInitialState picks grid on a phone and ticker on desktop', () => {
+    expect(createInitialState(false).view).toBe('ticker')
+    expect(createInitialState(true).view).toBe('grid')
+
+    const mobile = createInitialState(true)
+    expect(mobile.search).toBe(initialState.search)
+    expect(mobile.sort).toBe(initialState.sort)
+    expect(mobile.page).toBe(initialState.page)
+    expect(mobile.perPage).toBe(initialState.perPage)
   })
 
   test('SEARCH_CHANGED updates search and resets page to 1', () => {
