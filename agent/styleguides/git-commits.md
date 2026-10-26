@@ -34,8 +34,8 @@ non-obvious change carries its own "why."
     run.
   - `CI/CD` — the automation that runs those tools: the root GitHub
     Actions workflow (`.github/workflows/`), git hooks (`lefthook`
-    `pre-commit`/`commit-msg`), CI-specific `docker-compose` overrides,
-    and coverage upload (`codecov.yml`).
+    `pre-commit`/`commit-msg`/`pre-push`), CI-specific `docker-compose`
+    overrides, and coverage upload (`codecov.yml`).
     Tie-breaker between the two: `Tooling` is the tool's own config,
     `CI/CD` is the pipeline/hook that invokes it. Both are repo-wide only
     — a change to one app's own CI/Gemfile/config stays tagged with that

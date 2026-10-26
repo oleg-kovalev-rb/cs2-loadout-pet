@@ -1,0 +1,35 @@
+# Hook-only override for `pre-push`. Applied on top of the base file and the
+# CI override:
+#   docker compose -f docker-compose.yml -f docker-compose.ci.yml \
+#     -f docker-compose.hook.yml ...
+#
+# The hook runs each affected app's full `bin/ci`, which needs Redis. The
+# base `redis` service publishes host port 6380, so starting it from a hook
+# fails whenever another worktree's dev stack already owns that port.
+# `redis_hook` is the same image with no published ports; the app services
+# are repointed at it through their REDIS_URL* variables (Compose merges
+# `environment` maps across files).
+#
+# See agent/styleguides/git-hooks.md and
+# agent/adr/pre-push-full-ci-gate.md.
+
+services:
+  redis_hook:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app_core:
+    environment:
+      REDIS_URL: redis://redis_hook:6379/0
+      REDIS_URL_STREAM: redis://redis_hook:6379/2
+      REDIS_URL_DEMO: redis://redis_hook:6379/3
+
+  app_fetcher:
+    environment:
+      REDIS_URL: redis://redis_hook:6379/0
+      REDIS_URL_SIDEKIQ: redis://redis_hook:6379/1
+      REDIS_URL_STREAM: redis://redis_hook:6379/2

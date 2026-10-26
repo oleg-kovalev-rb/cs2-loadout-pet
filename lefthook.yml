@@ -34,3 +34,10 @@ pre-commit:
       root: "app_core/"
       glob: "app/frontend/**/*.{js,jsx,css}"
       run: ../script/hook-compose run --rm --no-deps app_core npx prettier --check {staged_files}
+
+# Full local CI for the apps the pushed commits affect. The script derives
+# the push range itself; see agent/styleguides/git-hooks.md.
+pre-push:
+  commands:
+    full-ci:
+      run: script/pre-push

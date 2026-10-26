@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+#
+# pre-push helper: run the full local CI gate for the apps a push affects.
+#
+# The hook is deliberately not a second check list: it delegates to each
+# app's `bin/ci`, which is the local equivalent of the root CI workflow.
+# Only the apps whose files are in the pushed commits are tested; shared or
+# unknown paths select both apps, and documentation-only pushes skip the
+# gate. Any failure aborts the push.
+#
+# The pushed file set is derived here rather than through lefthook's
+# `{push_files}` template: lefthook splits a long file list into several
+# command invocations, which would run the full gate more than once.
+#
+# The tests need Postgres and Redis. Redis comes from the hook-only
+# `redis_hook` compose service, which publishes no host port, so a hook run
+# does not collide with another worktree's dev stack.
+#
+# See agent/styleguides/git-hooks.md and
+# agent/adr/pre-push-full-ci-gate.md.
+#
+# Usage:
+#   script/pre-push                     # derive the push range from git
+#   script/pre-push --dry-run [<path>]  # print the decision, run nothing
+#   script/pre-push <path>...           # explicit files (manual testing)
+
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+dry_run=0
+files=()
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    -h|--help)
+      sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *) files+=("$arg") ;;
+  esac
+done
+
+if [ "${#files[@]}" -eq 0 ]; then
+  if upstream="$(git rev-parse --abbrev-ref --symbolic-full-name '@{push}' 2>/dev/null)"; then
+    mapfile -t files < <(git diff --name-only "$upstream"..HEAD)
+  elif merge_base="$(git merge-base origin/main HEAD 2>/dev/null)"; then
+    mapfile -t files < <(git diff --name-only "$merge_base"..HEAD)
+  else
+    # No upstream and no origin/main (fresh repo): be conservative.
+    mapfile -t files < <(git ls-files)
+  fi
+fi
+
+need_fetcher=0
+need_core=0
+
+for file in "${files[@]}"; do
+  case "$file" in
+    app_fetcher/*) need_fetcher=1 ;;
+    app_core/*) need_core=1 ;;
+    README.md|AGENTS.md|docs/*|agent/*|.claude/*|.cursor/*|.opencode/*) ;;
+    *) need_fetcher=1; need_core=1 ;;
+  esac
+done
+
+apps=()
+if [ "$need_fetcher" -eq 1 ]; then apps+=(app_fetcher); fi
+if [ "$need_core" -eq 1 ]; then apps+=(app_core); fi
+
+if [ "${#apps[@]}" -eq 0 ]; then
+  echo "pre-push: no app-affecting changes in this push — skipping bin/ci"
+  exit 0
+fi
+
+echo "pre-push: affected apps: ${apps[*]}"
+
+if [ "$dry_run" -eq 1 ]; then
+  exit 0
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "" >&2
+  echo "pre-push: Docker is not reachable, but bin/ci runs through docker compose." >&2
+  echo "Start Docker and push again, or bypass with 'git push --no-verify' (CI will still run)." >&2
+  exit 1
+fi
+
+compose=(script/hook-compose -f docker-compose.yml -f docker-compose.ci.yml -f docker-compose.hook.yml)
+
+services=(redis_hook)
+for app in "${apps[@]}"; do
+  case "$app" in
+    app_fetcher) services+=(db_fetcher) ;;
+    app_core) services+=(db_core) ;;
+  esac
+done
+
+"${compose[@]}" up -d --wait "${services[@]}" >/dev/null
+
+for app in "${apps[@]}"; do
+  echo ""
+  echo "pre-push: running bin/ci for $app"
+  if ! "${compose[@]}" run --rm --no-deps "$app" bin/ci; then
+    echo "" >&2
+    echo "pre-push: $app bin/ci failed — push aborted." >&2
+    echo "Fix the failure, or bypass with 'git push --no-verify' (CI will still run)." >&2
+    exit 1
+  fi
+done
+
+echo ""
+echo "pre-push: all affected apps passed."

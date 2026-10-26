@@ -26,7 +26,7 @@ assuming a root Gemfile.
 Adopt **lefthook** as the git-hook manager, configured in a committed
 root `lefthook.yml`.
 
-Two hooks:
+Three hooks:
 
 - **`pre-commit`** — a fast, staged-files-only subset of the CI
   `linters` job: `rubocop` on staged Ruby for each app, and `eslint` +
@@ -37,6 +37,10 @@ Two hooks:
   (`script/commit-msg`) that rejects any subject not matching
   `git-commits.md`'s `[Scope] Imperative summary` (valid scope, capital
   imperative verb, no trailing period/body/trailer).
+- **`pre-push`** — the full `bin/ci` for each app the pushed commits
+  affect, run through `script/pre-push` and the portless `redis_hook`
+  compose override. This is the one deliberate exception to "hooks are
+  not a second CI"; see `agent/adr/pre-push-full-ci-gate.md`.
 
 lefthook is installed as a devDependency of a new root `package.json`
 whose `prepare` script runs `lefthook install`, so a single `npm install`
@@ -104,18 +108,26 @@ Rejected because:
 - The `pre-commit` hook runs through docker compose, so a contributor
   must have Docker running while committing — a local hook is slower than
   a host-installed `rubocop`/`eslint`.
+- The `pre-push` hook runs both apps' full suites for cross-cutting
+  changes, so a push can take several minutes and also requires Docker,
+  built images, and a reachable database.
 - A root `package.json`/`package-lock.json` now exists solely for the
   hook tool, on top of the two apps' manifests.
 
 ### Risks
 
-- Bypass is possible (`git commit --no-verify`) and expected; the hook is
-  a convenience gate, CI remains the authority.
+- Bypass is possible (`git commit --no-verify`, `git push --no-verify`)
+  and expected; hooks are a convenience gate, CI remains the authority.
 - If a check is added to CI but not to `lefthook.yml` (or vice versa),
-  local and CI behavior drift; keep them aligned deliberately.
+  local and CI behavior drift; keep them aligned deliberately. The
+  `pre-push` hook avoids most of this by delegating to `bin/ci` rather
+  than duplicating the check list.
 - Worktree behavior must be verified: `lefthook install` writes into the
   shared hooks directory, and `extensions.worktreeconfig` means config
   can differ per worktree.
+- The `pre-push` affected-app mapping can drift from the app directory
+  layout; unknown paths default to both apps to avoid silently skipping
+  a suite.
 
 ## Implementation Constraints
 
@@ -127,14 +139,19 @@ Rejected because:
   compose with the `docker-compose.ci.yml`-style invocation.
 - `commit-msg` is a dependency-free script (no bundler, no gems) so it
   runs on any checkout; `lefthook.yml` passes it the commit-message file.
+- `pre-push` delegates to each affected app's `bin/ci`; it does not
+  maintain its own check list (see
+  `agent/adr/pre-push-full-ci-gate.md`).
 - The valid scope-tag set in `script/commit-msg` must match
   `agent/styleguides/git-commits.md` exactly.
 - Hooks never replace CI: every `pre-commit` check is also a blocking CI
-  check (`agent/styleguides/ci-and-coverage.md`).
+  check, and `pre-push` only runs checks `bin/ci`/CI already define.
 
 ## Related
 
 - `agent/styleguides/git-hooks.md` — the "how" companion to this "why"
+- `agent/adr/pre-push-full-ci-gate.md` — why `pre-push` runs the full
+  `bin/ci` for affected apps
 - `agent/styleguides/git-commits.md` — the commit-message convention the
   `commit-msg` hook enforces
 - `agent/adr/ci-via-docker-compose.md` — the CI half of the same

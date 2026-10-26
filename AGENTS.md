@@ -46,7 +46,9 @@ Shared docs live under `agent/` (ADRs, styleguides, user stories, and plans):
 - Git hooks use `lefthook`: run `npm install` once at the repo root (its
   `prepare` script runs `lefthook install`). `pre-commit` lints staged
   Ruby/JS; `commit-msg` enforces the `[Scope] Imperative summary`
-  convention. See `agent/styleguides/git-hooks.md`.
+  convention; `pre-push` runs the full `bin/ci` for the apps the pushed
+  commits affect (documentation-only pushes skip it). See
+  `agent/styleguides/git-hooks.md`.
 - Each app's `bin/ci` is the local equivalent of CI — keep it aligned.
 
 ## Development pipeline

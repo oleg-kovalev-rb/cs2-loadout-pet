@@ -179,8 +179,10 @@ Sorbet, bundler-audit, Brakeman, RSpec, and a seeds check, plus
 ESLint/Prettier/Vitest in `app_core`.
 
 Git hooks are installed by running `npm install` at the repository root
-(Lefthook). CI runs on every pull request and on pushes to `main`; a green run
-on `main` triggers deployment.
+(Lefthook). `git commit` lints staged files; `git push` runs the full `bin/ci`
+for the apps the pushed commits touch (documentation-only pushes skip it), so a
+failing suite is caught before it reaches CI. CI runs on every pull request and
+on pushes to `main`; a green run on `main` triggers deployment.
 
 ## Documentation
 
