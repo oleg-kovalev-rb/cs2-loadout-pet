@@ -16,6 +16,12 @@
 # `redis_hook` compose service, which publishes no host port, so a hook run
 # does not collide with another worktree's dev stack.
 #
+# Each app runs with `--build`. The CI override mounts an anonymous
+# `/app/node_modules` volume initialized from the image, so Node
+# dependencies added to a `package.json` reach the hook only through a
+# rebuilt image; without it a stale image fails the Vite build. Layer
+# caching keeps the rebuild near-free when nothing changed.
+#
 # See agent/styleguides/git-hooks.md and
 # agent/adr/pre-push-full-ci-gate.md.
 #
@@ -103,7 +109,7 @@ done
 for app in "${apps[@]}"; do
   echo ""
   echo "pre-push: running bin/ci for $app"
-  if ! "${compose[@]}" run --rm --no-deps "$app" bin/ci; then
+  if ! "${compose[@]}" run --rm --no-deps --build "$app" bin/ci; then
     echo "" >&2
     echo "pre-push: $app bin/ci failed — push aborted." >&2
     echo "Fix the failure, or bypass with 'git push --no-verify' (CI will still run)." >&2

@@ -110,7 +110,12 @@ decide what a check *is* — a hook only invokes checks defined elsewhere
   `.cursor/`, `.opencode/`) may skip the gate.
 - Start only what `pre-push` needs: the affected app's `db_*` service
   plus `redis_hook`, via `up -d --wait`, then run each app with
-  `run --rm --no-deps <app> bin/ci`.
+  `run --rm --no-deps --build <app> bin/ci`. The `--build` keeps the
+  image's baked-in Node dependencies in step with the checkout: the CI
+  override's anonymous `/app/node_modules` volume is initialized from the
+  image, so a `package.json` change reaches the hook only through a
+  rebuild (otherwise Vite fails to resolve a newly added module). Layer
+  caching makes the rebuild near-free when nothing changed.
 - Run the affected apps sequentially and stop at the first failure,
   naming the app and reminding that `git push --no-verify` is the bypass
   (CI still runs).
@@ -142,6 +147,11 @@ decide what a check *is* — a hook only invokes checks defined elsewhere
   `pre-push` command. Lefthook splits a long list into several
   invocations, which would run the full `bin/ci` more than once for one
   push; derive the range inside `script/pre-push` instead.
+- Don't drop `--build` from the `pre-push` `run` invocation to "save
+  time". Because the CI override replaces `/app/node_modules` with a
+  volume seeded from the image, a stale image silently tests the wrong
+  dependency set — the failure surfaces as an unrelated Vite/import
+  error, not as a missing rebuild.
 - Don't start the base `redis` service from `pre-push`: it publishes
   host port `6380` and fails when another worktree's stack already owns
   it. Use `redis_hook`, which publishes no port.
@@ -187,8 +197,8 @@ git push
     ↓ pre-push (lefthook) → script/pre-push
         ├── affected apps: app_fetcher | app_core | both (shared paths)
         ├── up -d --wait db_<app>... redis_hook   (portless)
-        ├── run --rm --no-deps app_fetcher bin/ci   (if affected)
-        └── run --rm --no-deps app_core    bin/ci   (if affected)
+        ├── run --rm --no-deps --build app_fetcher bin/ci   (if affected)
+        └── run --rm --no-deps --build app_core    bin/ci   (if affected)
     ↓
 push sent
 ```
