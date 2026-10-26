@@ -11,7 +11,7 @@ const SORT_LABELS = {
 
 export function SortDropdown({ isOpen, onToggle, sort, onSortChange }) {
   return (
-    <div className={`dropdown${isOpen ? ' is-open' : ''}`}>
+    <div className={`dropdown dropdown--end${isOpen ? ' is-open' : ''}`}>
       <button type="button" className="toolbar-btn" onClick={onToggle}>
         <span>{SORT_LABELS[sort]}</span>
         <Chevron />

@@ -15,7 +15,10 @@ body {
 }
 
 .admin-login {
+  box-sizing: border-box;
   min-height: 100vh;
+  min-height: 100dvh;
+  padding: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25,7 +28,8 @@ body {
 }
 
 .admin-login-card {
-  width: 320px;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
   padding: 32px;
   background: var(--surface, #151719);
   border: 1px solid var(--border, #26292e);
@@ -164,11 +168,21 @@ body {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
   .flash-stack {
-    top: 72px;
+    top: 112px;
     right: 16px;
     left: 16px;
     width: auto;
+  }
+  .admin-login-form input[type="text"],
+  .admin-login-form input[type="password"] {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 400px) {
+  .admin-login-card {
+    padding: 24px 20px;
   }
 }

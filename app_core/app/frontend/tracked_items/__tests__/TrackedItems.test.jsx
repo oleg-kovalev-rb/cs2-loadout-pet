@@ -2,6 +2,7 @@ import { render, screen, fireEvent, within, waitFor, act } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { describe, test, expect, vi, afterEach } from 'vitest'
 import { TrackedItems } from '../TrackedItems'
+import { MOBILE_MEDIA_QUERY } from '../../shared/utils/viewport'
 
 function jsonResponse(body, ok = true) {
   return Promise.resolve({ ok, status: ok ? 200 : 500, json: () => Promise.resolve(body) })
@@ -140,6 +141,22 @@ describe('TrackedItems', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
     const [url] = fetchMock.mock.calls[1]
     expect(new URL(url).searchParams.get('sort')).toBe('price_asc')
+  })
+
+  test('starts in the grid view on a phone viewport', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query) => ({ matches: query === MOBILE_MEDIA_QUERY, media: query })),
+    )
+    const fetchMock = vi.fn().mockImplementation(() => jsonResponse(catalogBody()))
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<TrackedItems fetcherUrl="http://fetcher.test" />)
+
+    await screen.findByText('AK-47 | Redline', { exact: false })
+
+    expect(document.querySelector('.grid-view')).not.toBeNull()
+    expect(document.querySelector('.ticker-wrap')).toBeNull()
   })
 
   test('selecting a sign-agnostic change sort refetches with its key', async () => {

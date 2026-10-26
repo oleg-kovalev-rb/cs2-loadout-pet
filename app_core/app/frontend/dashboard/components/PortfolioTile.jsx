@@ -1,6 +1,8 @@
+import { useEffect, useRef } from 'react'
 import { PeriodToggle } from '../../shared/components/PeriodToggle'
 import { HeroChart } from '../../shared/components/HeroChart'
 import { fmtUSD, fmtPrice, centsToUSD, conditionAbbr } from '../../shared/utils/format'
+import { isMobileViewport, prefersReducedMotion } from '../../shared/utils/viewport'
 import { PORTFOLIO_PERIODS, ITEM_PERIODS } from '../chartConfig'
 
 export function PortfolioTile({
@@ -16,6 +18,22 @@ export function PortfolioTile({
   onBack,
 }) {
   const isItemMode = mode === 'item' && Boolean(selectedItem)
+  const selectedName = selectedItem?.marketHashName ?? null
+  const sectionRef = useRef(null)
+
+  // On a phone the chart sits above the list, so selecting an item would
+  // otherwise update content the user cannot see. Bring the hero (header,
+  // value, chart) into view after the item-mode render; item -> item counts
+  // as a selection change, returning to portfolio does not.
+  useEffect(() => {
+    if (!isItemMode || !isMobileViewport()) return
+
+    sectionRef.current?.scrollIntoView?.({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'start',
+    })
+  }, [isItemMode, selectedName])
+
   const periods = isItemMode ? ITEM_PERIODS : PORTFOLIO_PERIODS
   const values = isItemMode ? itemHistorySeries : portfolioSeries
   const isLoadingItemHistory = isItemMode && itemHistoryStatus === 'pending'
@@ -48,7 +66,7 @@ export function PortfolioTile({
     : !isEstimatingPortfolio && Boolean(change?.available) && !change?.partial && delta !== 0
 
   return (
-    <section className={`tile tile-hero${isItemMode ? ' is-item-mode' : ''}`}>
+    <section ref={sectionRef} className={`tile tile-hero${isItemMode ? ' is-item-mode' : ''}`}>
       <header className="tile-head">
         <div className="hero-eyebrow">
           {isItemMode && (

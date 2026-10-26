@@ -1,4 +1,5 @@
 import { toggleSetMember } from '../shared/utils/sets'
+import { isMobileViewport } from '../shared/utils/viewport'
 
 export const initialState = {
   search: '',
@@ -10,6 +11,14 @@ export const initialState = {
   page: 1,
   perPage: 20,
   openDropdown: null, // 'filter' | 'sort' | null
+}
+
+// The viewport decides only the first view. Keep `initialState` desktop-
+// neutral so reducer tests stay deterministic; `TrackedItems` passes this
+// factory to useReducer's lazy initializer so the media query is read once,
+// never on resize or on a later user toggle.
+export function createInitialState(isMobile = isMobileViewport()) {
+  return { ...initialState, view: isMobile ? 'grid' : 'ticker' }
 }
 
 export function trackedItemsReducer(state, action) {

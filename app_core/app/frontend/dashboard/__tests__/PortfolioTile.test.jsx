@@ -1,6 +1,18 @@
 import { render, screen } from '@testing-library/react'
-import { describe, test, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, test, expect, vi } from 'vitest'
 import { PortfolioTile } from '../components/PortfolioTile'
+import { MOBILE_MEDIA_QUERY } from '../../shared/utils/viewport'
+
+const ITEM = {
+  marketHashName: 'AK-47 | Redline (FT)',
+  weaponType: 'AK-47',
+  itemName: 'Redline',
+  condition: 'Field-Tested',
+  stattrak: false,
+  currentPriceCents: 4000,
+}
+
+const OTHER_ITEM = { ...ITEM, marketHashName: 'AWP | Dragon Lore (FT)', itemName: 'Dragon Lore' }
 
 const COMPLETE_CURRENT = {
   totalValueCents: 15000,
@@ -12,22 +24,54 @@ const COMPLETE_CURRENT = {
 
 const NO_CHANGE = { cents: 0, percent: 0, basisAt: null, partial: false, available: false }
 
-function renderTile(overrides = {}) {
-  const props = {
-    portfolioSeries: [],
-    current: COMPLETE_CURRENT,
-    change: NO_CHANGE,
-    itemHistorySeries: [],
-    itemHistoryStatus: 'pending',
-    period: '7d',
-    mode: 'portfolio',
-    selectedItem: null,
-    onPeriodChange: vi.fn(),
-    onBack: vi.fn(),
-    ...overrides,
-  }
-  return render(<PortfolioTile {...props} />)
+const DEFAULT_PROPS = {
+  portfolioSeries: [],
+  current: COMPLETE_CURRENT,
+  change: NO_CHANGE,
+  itemHistorySeries: [],
+  itemHistoryStatus: 'pending',
+  period: '7d',
+  mode: 'portfolio',
+  selectedItem: null,
+  onPeriodChange: vi.fn(),
+  onBack: vi.fn(),
 }
+
+function tileProps(overrides = {}) {
+  return { ...DEFAULT_PROPS, ...overrides }
+}
+
+function renderTile(overrides = {}) {
+  return render(<PortfolioTile {...tileProps(overrides)} />)
+}
+
+function stubMatchMedia({ mobile = false, reduced = false } = {}) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query) => ({
+      matches:
+        query === MOBILE_MEDIA_QUERY
+          ? mobile
+          : query === '(prefers-reduced-motion: reduce)'
+            ? reduced
+            : false,
+      media: query,
+    })),
+  )
+}
+
+const originalScrollIntoView = Element.prototype.scrollIntoView
+let scrollIntoView
+
+beforeEach(() => {
+  scrollIntoView = vi.fn()
+  Element.prototype.scrollIntoView = scrollIntoView
+})
+
+afterEach(() => {
+  Element.prototype.scrollIntoView = originalScrollIntoView
+  vi.unstubAllGlobals()
+})
 
 describe('PortfolioTile', () => {
   test('portfolio mode: a complete, genuinely-zero inventory shows $0.00 with no delta', () => {
@@ -193,5 +237,55 @@ describe('PortfolioTile', () => {
     })
 
     expect(screen.getByRole('button', { name: '24h' })).toBeInTheDocument()
+  })
+})
+
+describe('PortfolioTile mobile hero scroll', () => {
+  test('scrolls the hero into view when item mode is entered on a phone', () => {
+    stubMatchMedia({ mobile: true })
+
+    renderTile({ mode: 'item', selectedItem: ITEM })
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+  })
+
+  test('uses an instant scroll when reduced motion is requested', () => {
+    stubMatchMedia({ mobile: true, reduced: true })
+
+    renderTile({ mode: 'item', selectedItem: ITEM })
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' })
+  })
+
+  test('does not scroll on a desktop viewport', () => {
+    stubMatchMedia({ mobile: false })
+
+    renderTile({ mode: 'item', selectedItem: ITEM })
+
+    expect(scrollIntoView).not.toHaveBeenCalled()
+  })
+
+  test('does not scroll in portfolio mode', () => {
+    stubMatchMedia({ mobile: true })
+
+    renderTile({ mode: 'portfolio', selectedItem: null })
+
+    expect(scrollIntoView).not.toHaveBeenCalled()
+  })
+
+  test('scrolls again when another item is selected, but not when returning to portfolio', () => {
+    stubMatchMedia({ mobile: true })
+
+    const { rerender } = renderTile({ mode: 'item', selectedItem: ITEM })
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+
+    scrollIntoView.mockClear()
+    rerender(<PortfolioTile {...tileProps({ mode: 'item', selectedItem: OTHER_ITEM })} />)
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+
+    scrollIntoView.mockClear()
+    rerender(<PortfolioTile {...tileProps({ mode: 'portfolio', selectedItem: null })} />)
+    expect(scrollIntoView).not.toHaveBeenCalled()
   })
 })

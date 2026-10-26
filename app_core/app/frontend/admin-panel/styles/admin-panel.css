@@ -555,3 +555,100 @@ input[type='checkbox'] {
 .resource-error {
   margin: 12px 20px 0;
 }
+
+/* ---------- responsive ---------- */
+@media (max-width: 880px) {
+  #admin-panel-root {
+    min-height: calc(100vh - 56px);
+    min-height: calc(100dvh - 56px);
+  }
+  .admin-shell {
+    flex-direction: column;
+  }
+  .admin-shell .sidenav {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    padding: 0 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .admin-shell .sidenav::-webkit-scrollbar {
+    display: none;
+  }
+  .admin-shell .nav-group {
+    display: contents;
+  }
+  .admin-shell .nav-group-label {
+    display: none;
+  }
+  .admin-shell .nav-link {
+    white-space: nowrap;
+    padding: 14px 12px;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+  }
+  .admin-shell .nav-link.is-active {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+    background: transparent;
+  }
+  .admin-shell .admin-main {
+    padding: 20px 16px calc(48px + env(safe-area-inset-bottom));
+  }
+  .shell > .topbar {
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .admin-shell .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .admin-shell .resource-head {
+    padding: 14px 16px;
+  }
+  .shell .btn {
+    min-height: 40px;
+  }
+  .admin-shell .icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .admin-shell .pg-btn {
+    min-width: 36px;
+    height: 36px;
+  }
+  .admin-shell .pagination {
+    padding: 12px 16px;
+  }
+  .admin-shell .pg-controls {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+  .field input[type='text'],
+  .field select,
+  .pg-size select {
+    font-size: 16px;
+  }
+  .shell button,
+  .shell a {
+    touch-action: manipulation;
+  }
+}
+@media (max-width: 560px) {
+  .shell .admin-chip {
+    display: none;
+  }
+}
+@media (pointer: coarse) and (min-width: 641px) {
+  .shell .btn,
+  .admin-shell .icon-btn,
+  .admin-shell .pg-btn {
+    min-height: 36px;
+  }
+}

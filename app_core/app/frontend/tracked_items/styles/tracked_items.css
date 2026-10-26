@@ -351,15 +351,150 @@
 
 /* ---------- responsive ---------- */
 @media (max-width: 640px) {
+  /* Keep the three short summary figures side by side; labels may wrap. */
   .dash-root .stat-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
+  .dash-root .stat-tile {
+    padding: 9px 10px;
+    gap: 5px;
+  }
+  .dash-root .stat-label {
+    font-size: 0.5625rem;
+    letter-spacing: 0.06em;
+    white-space: normal;
+  }
+  .dash-root .stat-value {
+    font-size: 1.125rem;
+  }
+
+  /* Search on its own row, filters + sort side by side, view toggle full width. */
   .dash-root .catalog-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
-  .dash-root .view-toggle {
-    margin-left: 0;
-    order: 10;
+  .dash-root .catalog-toolbar .search-field,
+  .dash-root .catalog-toolbar .view-toggle {
+    grid-column: 1 / -1;
+  }
+  .dash-root .catalog-toolbar .search-field {
+    min-width: 0;
+  }
+  .dash-root .catalog-toolbar .search-input {
+    height: 40px;
+    font-size: 16px;
+  }
+  .dash-root .catalog-toolbar .dropdown,
+  .dash-root .catalog-toolbar .toolbar-btn {
     width: 100%;
+  }
+  .dash-root .catalog-toolbar .view-toggle {
+    margin-left: 0;
+    height: 40px;
+  }
+  .dash-root .catalog-toolbar .view-btn {
+    flex: 1;
+    min-height: 36px;
+  }
+
+  /* Two cards per row on a 390px screen instead of one oversized card. */
+  .dash-root .grid-view {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .dash-root .item-card {
+    padding: 10px;
+  }
+  .dash-root .card-icon {
+    height: 76px;
+  }
+  .dash-root .card-name {
+    font-size: 0.75rem;
+  }
+  .dash-root .card-price {
+    font-size: 0.875rem;
+  }
+  .dash-root .card-spark {
+    height: 28px;
+  }
+
+  /* Ticker: a compact stacked row instead of a 720px-wide table. */
+  .dash-root .ticker-wrap {
+    overflow-x: visible;
+  }
+  .dash-root .ticker {
+    min-width: 0;
+  }
+  .dash-root .ticker-head {
+    display: none;
+  }
+  .dash-root .ticker-row {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icon id figures'
+      'icon id spark'
+      'icon rarity category';
+    gap: 2px 10px;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--border-soft);
+    border-radius: 0;
+  }
+  .dash-root .ticker-icon {
+    grid-area: icon;
+    width: 48px;
+    height: 48px;
+    align-self: center;
+  }
+  .dash-root .ticker-id {
+    grid-area: id;
+  }
+  .dash-root .ticker-figures {
+    grid-area: figures;
+  }
+  .dash-root .ticker-row .row-spark {
+    grid-area: spark;
+    justify-self: end;
+    width: 56px;
+    height: 18px;
+  }
+  .dash-root .ticker-row .rarity {
+    grid-area: rarity;
+  }
+  .dash-root .ticker-row .ticker-cat {
+    grid-area: category;
+    justify-self: end;
+  }
+
+  .dash-root .pager-right {
+    gap: 8px;
+  }
+  .dash-root .per-page-select {
+    font-size: 16px;
+  }
+}
+@media (max-width: 400px) {
+  .dash-root .stat-strip {
+    gap: 4px;
+  }
+  .dash-root .stat-tile {
+    padding: 8px 7px;
+  }
+  .dash-root .stat-label {
+    font-size: 0.5rem;
+    letter-spacing: 0;
+  }
+  .dash-root .stat-value {
+    font-size: 1rem;
+  }
+}
+
+@media (pointer: coarse) and (min-width: 641px) {
+  .dash-root .view-toggle {
+    height: 40px;
+  }
+  .dash-root .view-btn {
+    min-height: 36px;
   }
 }
