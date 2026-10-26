@@ -433,6 +433,9 @@ Commands actually executed:
   **198 files inspected, no offenses**; **No errors**.
 - `docker compose ... run --rm --no-deps app_fetcher bin/brakeman --no-pager` —
   **Security Warnings: 0**.
+- `docker compose ... run --rm --no-deps app_fetcher bin/ci` and
+  `... app_core bin/ci` — **CI passed** in both apps (includes
+  `bin/bundler-audit`, Brakeman, RSpec, Vitest, and the seed replant).
 - `docker compose ... run --rm --no-deps app_core npm test` —
   **56 files, 345 tests passed**.
 - `docker compose ... run --rm --no-deps app_core bash -c "npm run lint && npm run format:check"` —
@@ -474,3 +477,7 @@ Commands actually executed:
   current catalog size, revisit with a generated column if the catalog
   grows substantially.
 - Admin panel item table remains out of scope and unchanged.
+- CI's `bin/bundler-audit` flagged `crass 1.0.7` (GHSA-pq4g-8rxf-4g29) on a
+  fresh advisory DB; patched both lockfiles to `crass 1.0.8` with
+  `bundle update --conservative crass` (the only gem that moved), rebuilt
+  both images, and re-ran `bin/ci` in both apps successfully.
