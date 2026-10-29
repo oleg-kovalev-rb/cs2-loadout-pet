@@ -1,6 +1,6 @@
 import { Sparkline } from '../../shared/components/Sparkline'
 import { trendDirection } from '../../shared/utils/trend'
-import { fmtPrice, fmtSignedUSD, conditionAbbr } from '../../shared/utils/format'
+import { fmtPrice, fmtUSD, centsToUSD, conditionAbbr } from '../../shared/utils/format'
 import { isPriceStale, priceAgeLabel } from '../../shared/utils/priceFreshness'
 import { changePct } from '../utils/filters'
 
@@ -45,10 +45,9 @@ export function ItemRow({ item, isSelected, onSelect }) {
           </span>
           {showDelta && (
             <span className={`mover-delta tabular ${direction}`}>
-              {arrow} {Math.abs(pct).toFixed(1)}%
-              {item.change24hCents != null && item.change24hCents !== 0 && (
-                <span className="delta-amount"> {fmtSignedUSD(item.change24hCents)}</span>
-              )}
+              {arrow} {fmtUSD(centsToUSD(Math.abs(item.change24hCents)))} (
+              {direction === 'up' ? '+' : '-'}
+              {Math.abs(pct).toFixed(1)}%)
             </span>
           )}
         </span>

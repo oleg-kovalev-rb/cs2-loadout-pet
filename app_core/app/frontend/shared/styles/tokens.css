@@ -785,16 +785,17 @@ html {
 .dash-root .mover-delta {
   font-family: var(--font-mono);
   font-size: 0.65625rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 .dash-root .mover-delta.up {
   color: var(--up);
+  background: var(--up-soft);
 }
 .dash-root .mover-delta.down {
   color: var(--down);
-}
-.dash-root .delta-amount {
-  color: var(--text-muted);
-  font-weight: 400;
+  background: var(--down-soft);
 }
 
 /* ---------- pager (Pagination) ---------- */

@@ -271,6 +271,20 @@ kebab-case name. Single-word entries (`dashboard.jsx`) are unchanged.
   complete changes render exactly as before. Canonical:
   `dashboard/components/PortfolioTile.jsx`,
   `inventories/components/PortfolioHeroTile.jsx`.
+- **A non-flat item delta is one compact pill: amount first, percent in
+  parentheses, one color.** A row/card 24h delta renders as
+  `▲ $3.12 (+8.1%)` (down: `▼ $0.50 (-1.2%)`) — the absolute
+  `change_24h_cents` first (unsigned; the arrow carries direction, matching
+  the hero's `▲ $10.00 (+7.14%)` order), then `Math.abs(pct).toFixed(1)`
+  with an explicit `+`/`-` sign in parentheses, all in the single
+  `--up`/`--down` color on a `--up-soft`/`--down-soft` pill. The amount is
+  not a separate muted fragment (`.delta-amount`/`fmtSignedUSD` are gone);
+  the badge is one self-contained unit, not two visually distinct values.
+  Percent precision stays at one decimal for rows/cards (the hero uses
+  two). Canonical: `dashboard/components/ItemRow.jsx`,
+  `inventories/components/InventoryItemRow.jsx`,
+  `tracked_items/components/TickerView.jsx`,
+  `tracked_items/components/GridView.jsx`.
 - **A partial valuation is marked, not hidden or silently presented as
   complete.** When the backend reports `complete === false`, the hero
   (`PortfolioTile`/`PortfolioHeroTile`) and the catalog card

@@ -133,7 +133,7 @@ describe('ItemsTile (filter -> sort -> paginate integration)', () => {
     let rows = screen.getAllByRole('listitem')
     expect(within(rows[0]).getByText(/Howl/)).toBeInTheDocument()
     expect(within(rows[1]).getByText(/Redline/)).toBeInTheDocument()
-    expect(within(rows[0]).getByText('-$10.00')).toBeInTheDocument()
+    expect(within(rows[0]).getByText(/\$10\.00/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '24h change: max amount' }))
     await user.click(screen.getByRole('button', { name: '24h change: max percent' }))

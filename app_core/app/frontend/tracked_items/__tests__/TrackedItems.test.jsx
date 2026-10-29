@@ -72,8 +72,8 @@ describe('TrackedItems', () => {
     expect(await screen.findByText('AK-47 | Redline', { exact: false })).toBeInTheDocument()
     expect(screen.getByText('AWP | Dragon Lore', { exact: false })).toBeInTheDocument()
     expect(screen.getByText('2')).toBeInTheDocument()
-    expect(screen.getByText('+$1.30')).toBeInTheDocument()
-    expect(screen.getByText('-$11.00')).toBeInTheDocument()
+    expect(screen.getByText(/\$1\.30/)).toBeInTheDocument()
+    expect(screen.getByText(/\$11\.00/)).toBeInTheDocument()
   })
 
   test('an item with no current price renders a placeholder and no delta badge', async () => {

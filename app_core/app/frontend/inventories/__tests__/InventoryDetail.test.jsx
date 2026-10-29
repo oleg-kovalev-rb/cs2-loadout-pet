@@ -97,7 +97,7 @@ describe('InventoryDetail', () => {
     expect(screen.getByText('$5,000.00')).toBeInTheDocument() // total_value_cents
     expect(screen.getByText('127')).toBeInTheDocument() // items_count
     expect(screen.getByText(/Crimson Web/)).toBeInTheDocument() // priciest item note
-    expect(screen.getByText('+$1.30')).toBeInTheDocument() // item money delta
+    expect(screen.getByText(/\$1\.30/)).toBeInTheDocument() // item money delta
     expect(container.querySelector('.hero-delta')).toHaveClass('is-up')
   })
 
