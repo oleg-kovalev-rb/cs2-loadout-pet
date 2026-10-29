@@ -161,7 +161,7 @@
 }
 .dash-root .ticker-head {
   display: grid;
-  grid-template-columns: 56px 1fr 110px 48px 130px 90px;
+  grid-template-columns: 56px 1fr 150px 48px 130px 90px;
   gap: 14px;
   align-items: center;
   padding: 0 10px 10px;
@@ -177,7 +177,7 @@
 }
 .dash-root .ticker-row {
   display: grid;
-  grid-template-columns: 56px 1fr 110px 48px 130px 90px;
+  grid-template-columns: 56px 1fr 150px 48px 130px 90px;
   gap: 14px;
   align-items: center;
   padding: 12px 10px;
@@ -229,12 +229,17 @@
 .dash-root .ticker-delta {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 .dash-root .ticker-delta.up {
   color: var(--up);
+  background: var(--up-soft);
 }
 .dash-root .ticker-delta.down {
   color: var(--down);
+  background: var(--down-soft);
 }
 
 /* ---------- grid view ---------- */
@@ -292,6 +297,7 @@
   padding: 2px 7px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
+  white-space: nowrap;
 }
 .dash-root .card-delta.up {
   color: var(--up);

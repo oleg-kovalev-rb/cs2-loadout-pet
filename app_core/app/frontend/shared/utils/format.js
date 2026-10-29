@@ -13,14 +13,6 @@ export function fmtPrice(cents) {
   return fmtUSD(centsToUSD(cents))
 }
 
-export function fmtSignedUSD(cents) {
-  if (cents == null) return '—'
-  if (cents === 0) return fmtUSD(0)
-
-  const sign = cents < 0 ? '-' : '+'
-  return `${sign}${fmtUSD(Math.abs(cents) / 100)}`
-}
-
 export function fmtDateTime(epochMs) {
   return new Date(epochMs).toLocaleString('en-US', {
     month: 'short',

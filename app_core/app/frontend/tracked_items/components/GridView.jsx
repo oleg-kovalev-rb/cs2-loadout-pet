@@ -1,6 +1,6 @@
 import { Sparkline } from '../../shared/components/Sparkline'
 import { trendDirection } from '../../shared/utils/trend'
-import { fmtPrice, fmtSignedUSD, conditionAbbr } from '../../shared/utils/format'
+import { fmtPrice, fmtUSD, centsToUSD, conditionAbbr } from '../../shared/utils/format'
 import { rarityColor } from '../utils/rarity'
 
 function ItemCard({ item }) {
@@ -32,10 +32,9 @@ function ItemCard({ item }) {
         <span className="card-price tabular">{fmtPrice(item.currentPriceCents)}</span>
         {showDelta && (
           <span className={`card-delta ${direction}`}>
-            {arrow} {Math.abs(pct).toFixed(1)}%
-            {item.change24hCents != null && item.change24hCents !== 0 && (
-              <span className="delta-amount"> {fmtSignedUSD(item.change24hCents)}</span>
-            )}
+            {arrow} {fmtUSD(centsToUSD(Math.abs(item.change24hCents)))} (
+            {direction === 'up' ? '+' : '-'}
+            {Math.abs(pct).toFixed(1)}%)
           </span>
         )}
       </div>

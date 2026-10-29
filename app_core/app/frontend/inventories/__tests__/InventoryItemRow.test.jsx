@@ -65,20 +65,23 @@ describe('InventoryItemRow', () => {
     expect(delta.textContent).toMatch(/▼/)
   })
 
-  test('renders the money delta next to the percent delta', () => {
+  test('renders the money delta and percent together in one badge', () => {
     const { container } = renderRow(baseItem)
 
-    expect(container.querySelector('.delta-amount')).toHaveTextContent('+$1.30')
+    const delta = container.querySelector('.mover-delta')
+    expect(delta.textContent).toMatch(/▲ \$1\.30 \(\+3\.2%\)/)
   })
 
-  test('renders a negative money delta with a minus sign', () => {
+  test('renders a negative change with a down arrow and a minus percent', () => {
     const { container } = renderRow({
       ...baseItem,
       change24hCents: -50,
       change24hPercent: -1.2,
     })
 
-    expect(container.querySelector('.delta-amount')).toHaveTextContent('-$0.50')
+    const delta = container.querySelector('.mover-delta')
+    expect(delta).toHaveClass('down')
+    expect(delta.textContent).toMatch(/▼ \$0\.50 \(-1\.2%\)/)
   })
 
   test('marks a stale price with its age but keeps the price and delta', () => {
