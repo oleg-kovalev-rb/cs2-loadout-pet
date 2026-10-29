@@ -202,6 +202,33 @@ end-to-end flow, and
 [`agent/styleguides/README.md`](agent/styleguides/README.md) for the conventions
 index.
 
+## AI development pipeline
+
+The repository is wired for AI coding agents (Claude Code, Cursor, and OpenCode)
+to follow the same documented, test-driven workflow. Each tool reads the shared
+docs in `agent/` and exposes the same seven skills from its own skills directory
+— `.claude/skills/`, `.cursor/skills/`, and `.opencode/skills/`.
+
+Every non-trivial change (new behavior, a business-logic bug fix, or a new
+integration) passes through four stages instead of jumping straight to code:
+
+| Stage | Skill | Result |
+|---|---|---|
+| 1. Research | `research-codebase` | Understand current behavior, files, and tests |
+| 2. Plan | `create-dev-plan` | A concrete plan written to `agent/plans/<slug>.md` |
+| 3. Gate | `styleguides-check` | Plan checked against styleguides; missing guides are created (`create-styleguide`, `create-styleguide-from-scratch`) or amended (`update-styleguide`) |
+| 4. Implement | `implement-plan` | TDD implementation following the checked plan |
+
+Plans live in `agent/plans/` and carry a `status` frontmatter field that moves
+`draft` → `blocked` / `styleguide-checked` → `implemented`, so in-progress work
+survives a new session or context compaction.
+
+Shared knowledge is split by scope under `agent/`: ADRs (`agent/adr/`),
+engineering conventions (`agent/styleguides/`, shared vs. `fetcher/` vs.
+`core/`), the user story (`agent/US/`), and plans (`agent/plans/`). Divergences
+from a convention are recorded in `agent/styleguides/fix_me.md` rather than
+fixed ad hoc. The pipeline and its tool layout are documented in `AGENTS.md`.
+
 ## Deployment
 
 Production runs on a single VPS with Kamal: two services (`steam-core` and
