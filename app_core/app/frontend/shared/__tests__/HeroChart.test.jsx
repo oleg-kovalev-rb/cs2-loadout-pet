@@ -49,4 +49,14 @@ describe('HeroChart', () => {
     expect(screen.getByText('7d ago')).toBeInTheDocument()
     expect(screen.queryByText('8d ago')).not.toBeInTheDocument()
   })
+
+  test('does not collapse to repeated "today" for a near-empty series', () => {
+    const now = Date.now()
+    const single = [{ at: now - 1000, value: 10000, complete: true }]
+
+    render(<HeroChart values={single} period="7d" />)
+
+    expect(screen.getByText('7d ago')).toBeInTheDocument()
+    expect(screen.getAllByText('today')).toHaveLength(1)
+  })
 })

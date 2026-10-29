@@ -63,6 +63,23 @@ describe('generateAxisLabels', () => {
     ])
   })
 
+  test('does not collapse to repeated "today" for a sub-hour span', () => {
+    expect(generateAxisLabels('7d', NOW, NOW)).toEqual([
+      '7d ago',
+      '5d ago',
+      '4d ago',
+      '2d ago',
+      'today',
+    ])
+    expect(generateAxisLabels('7d', NOW - 1000, NOW)).toEqual([
+      '7d ago',
+      '5d ago',
+      '4d ago',
+      '2d ago',
+      'today',
+    ])
+  })
+
   test("leaves 'all' blank except the trailing today", () => {
     expect(generateAxisLabels('all', NOW - 100 * DAY, NOW)).toEqual(['', '', '', '', 'today'])
   })

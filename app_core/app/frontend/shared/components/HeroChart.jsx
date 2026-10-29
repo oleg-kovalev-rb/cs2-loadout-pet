@@ -10,7 +10,7 @@ import {
 import { ChartTooltip } from './ChartTooltip'
 import { fmtUSD, centsToUSD } from '../utils/format'
 import { hasPartialPoints } from '../utils/chartPoints'
-import { generateAxisLabels, Y_AXIS_TICK_COUNT, PERIOD_MS } from '../chartConfig'
+import { generateAxisLabels, Y_AXIS_TICK_COUNT, PERIOD_MS, MIN_AXIS_SPAN_MS } from '../chartConfig'
 
 function PartialDot({ cx, cy, payload, index }) {
   if (payload.complete !== false) return <g key={index} />
@@ -61,7 +61,12 @@ export function HeroChart({ values, period }) {
   const periodStart = period === 'all' ? null : now - PERIOD_MS[period]
   const axisStart = period === 'all' ? dataMin : Math.max(periodStart, dataMin ?? periodStart)
   const axisEnd = period === 'all' ? dataMax : Math.max(now, dataMax ?? -Infinity)
-  const hasAxisSpan = axisStart != null && axisEnd != null && axisEnd > axisStart
+  // A series whose points are all within a single unit (e.g. a brand-new
+  // account's lone live point) has no meaningful time axis; treat it like an
+  // empty series and fall back to the nominal period so the labels don't
+  // collapse to repeated "today".
+  const hasAxisSpan =
+    axisStart != null && axisEnd != null && axisEnd - axisStart >= MIN_AXIS_SPAN_MS
   const domain =
     period === 'all'
       ? ['dataMin', 'dataMax']
