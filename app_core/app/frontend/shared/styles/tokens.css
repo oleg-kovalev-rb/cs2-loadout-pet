@@ -511,6 +511,15 @@ html {
   display: block;
   overflow: visible;
 }
+/* Recharts 3's accessibility layer (on by default) makes the chart's SVG
+   focusable (`tabindex="0"`, `role="application"`). A pointer/touch focus
+   then draws the browser's default focus ring around the whole plot — the
+   white outline on double-click/tap. Suppress it for pointer focus, but
+   keep the accent outline from `.dash-root :focus-visible` for keyboard
+   users, who still Tab to the chart to navigate its data. */
+.dash-root .recharts-surface:focus:not(:focus-visible) {
+  outline: none;
+}
 
 .dash-root .chart-grid line {
   stroke: rgba(139, 148, 171, 0.09);
