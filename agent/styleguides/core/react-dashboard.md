@@ -725,6 +725,14 @@ of them:
   beside two days of data) and never fabricate points to fill the gap.
   When the real span is shorter than four whole units, downgrade the
   label unit (`d` → `h`, `mo` → `d`) so adjacent labels cannot repeat.
+- A series with no meaningful span — a single point, or points all within
+  the finest label unit (one hour) — has no honest relative labels to
+  draw. Treat it like an empty series: fall back to the nominal-period
+  domain (`[now - PERIOD_MS[period], now]`) and the canonical labels, so
+  the lone point sits at `today` and no tick repeats `today`. The floor
+  must be shared between `HeroChart`'s `hasAxisSpan` and `chartConfig.js`'s
+  `generateAxisLabels` — an exported `MIN_AXIS_SPAN_MS` equal to the hour
+  unit — so the domain and the labels never disagree.
 - `'all'` keeps its blank-label treatment: it has no known span to
   count back from.
 

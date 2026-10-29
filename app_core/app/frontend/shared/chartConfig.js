@@ -27,6 +27,11 @@ const UNIT_MS = {
   mo: (365 * 24 * 60 * 60 * 1000) / 12,
 }
 
+// A span below the finest label unit (one hour) has no distinct relative
+// labels to draw — every tick would round to "today"/"now". Treat it as "no
+// meaningful span" and fall back to the nominal period, like an empty series.
+export const MIN_AXIS_SPAN_MS = UNIT_MS.h
+
 // Whole-unit labels stop being readable when the span has fewer units than
 // there are gaps between ticks: rounding then produces duplicate labels.
 const MIN_UNITS_FOR_WHOLE_LABELS = X_AXIS_TICK_COUNT - 1
@@ -52,7 +57,7 @@ export function generateAxisLabels(period, start, end, tickCount = X_AXIS_TICK_C
   }
 
   const { label: nominalLabel, now } = PERIOD_LABEL[period]
-  const span = end > start ? end - start : PERIOD_MS[period]
+  const span = end > start && end - start >= MIN_AXIS_SPAN_MS ? end - start : PERIOD_MS[period]
   const label = labelUnit(nominalLabel, span)
   const spanUnits = span / UNIT_MS[label]
 
