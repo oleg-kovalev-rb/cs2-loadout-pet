@@ -47,7 +47,7 @@ gem "sorbet-runtime"
 gem "tapioca", require: false, group: [ :development, :test ]
 
 gem "jwt"
-gem "redis", "~> 5.0"
+gem "redis", "~> 6.0"
 gem "connection_pool"
 
 group :development, :test do
